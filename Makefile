@@ -8,3 +8,6 @@ cipher.o: cipher.c
 
 vigenere.o: vigenere.c
 	@gcc -c vigenere.c
+
+clean:
+	@rm vigenere

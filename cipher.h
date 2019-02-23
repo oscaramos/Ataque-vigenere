@@ -10,4 +10,4 @@ void cipher(int, int, unsigned *, unsigned);
 
 void uncipher(int, int, unsigned *, unsigned);
 
-void frequential_analysis(int, int);
+void caesarFrequentialAnalysisAttack(int, int);
