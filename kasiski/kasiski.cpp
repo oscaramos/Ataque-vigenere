@@ -45,7 +45,7 @@ void findRepeatedSubstrings(int src, SubstringMap &strs) {
 		while (offset + count <= end_offset && count <= MAX_COUNT) {
 			n_read = read(src, buffer, count);
 			buffer[count] = '\0';
-                        save(buffer, offset, strs);
+      save(buffer, offset, strs);
 			lseek(src, offset, SEEK_SET);
 			count++;
 		}
