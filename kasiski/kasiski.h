@@ -2,6 +2,5 @@
 #include <set>
 #include <string>
 
-void findRepeatedSubstrings(int, std::map<std::string, unsigned> &, std::set<unsigned> &);
-
-int findKeyLength(std::set<unsigned> &);
+void countCharFrequencies(int, std::map<char, unsigned> &, unsigned, unsigned);
+void attack(int, int);

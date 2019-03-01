@@ -5,8 +5,11 @@
 #include <set>
 #include <utility>
 #include <string>
-#define MIN_COUNT 3
-#define MAX_COUNT 3
+
+// Greater the substrings are, the more chance to find the right length
+#define MIN_COUNT 10 // Replace this value
+#define MAX_COUNT 10 // Replace this value
+#define MAX_DIVISOR 30000
 
 using namespace std;
 
@@ -37,7 +40,7 @@ static void save(const char * str, unsigned offset, SubstringMap &strs,
  * src - is the file descriptor of the file to search in.
  * strs - is a map on the substring with the substring occurences as value. 
  */
-void findRepeatedSubstrings(int src, SubstringMap &strs, set<unsigned> &offsets) {
+static void findRepeatedSubstrings(int src, SubstringMap &strs, set<unsigned> &offsets) {
 	char buffer[MAX_COUNT];
 	off_t end_offset = lseek(src, 0, SEEK_END);
 	off_t offset = lseek(src, 0, SEEK_SET);
@@ -55,20 +58,36 @@ void findRepeatedSubstrings(int src, SubstringMap &strs, set<unsigned> &offsets)
 	}
 }
 
-static bool isDivisibleBy(unsigned distance, unsigned divisor){
-    return distance%divisor == 0;
+/* Tells if a is divisible by b.
+ *
+ * a - is the dividend.
+ * b - is the divisor.
+ */
+static bool isDivisibleBy(unsigned a, unsigned b){
+    return a % b == 0;
 }
 
-static void countNbDivisible(map<unsigned, unsigned> &divisors, std::set<unsigned> &distances){
-    for(const auto &distance : distances) {
-        for(unsigned divisor{2}; divisor < 30000; ++divisor){
-            if(isDivisibleBy(distance, divisor)) {
+/* Counts the number of distances divisible by a given divisor.
+ *
+ * divisors - is an empty map.
+ * distances - are the distances between the different repeated substrings.
+ */
+static void countNbDivisibleDistances(map<unsigned, unsigned> &divisors, set<unsigned> &distances) {
+    const unsigned min_divisor = 2;
+		for (const auto &distance : distances) {
+        for (unsigned divisor{min_divisor}; divisor < MAX_DIVISOR; ++divisor) {
+            if (isDivisibleBy(distance, divisor)) {
                 divisors[divisor]++;
             }
         }
     }
 }
 
+/* Finds the divisor that can divide the most of the distances.
+ *
+ * m - is a map on the divisor with the divisor number of possible distance
+ * division.
+ */
 static unsigned findMaxDivisor(std::map<unsigned, unsigned> &m){
     unsigned max_key{2};
 		for (const auto &p : m) {
@@ -79,14 +98,52 @@ static unsigned findMaxDivisor(std::map<unsigned, unsigned> &m){
     return max_key;
 }
 
-unsigned findKeyLength(set<unsigned> &distances) {
-	map<unsigned, unsigned> divisors;
-	countNbDivisible(divisors, distances);
-
-	for (auto &p : divisors) {
-		cout << "<" << p.first << ", " << p.second << ">" << endl;
-	}
-
+/* Finds the length of the key used to cipher a text with Vigènere cipher.
+ *
+ * distances - are the distances between all the substring.
+ */
+static unsigned findKeyLength(set<unsigned> &distances) {
+  map<unsigned, unsigned> divisors;
+	countNbDivisibleDistances(divisors, distances);
 	return findMaxDivisor(divisors);
 }
 
+/* Counts the frequency of all characters at n * offset. Where n is the number
+ * of characters corresponding to the given offset.
+ *
+ * src - is the file descriptor of the source file.
+ * frequencies - is the map holding the characters frequencies.
+ * offset - is the offset of each charaters.
+ * key_length - is the length of the key used to cipher src.
+ */
+void countCharFrequencies(int src, map<char, unsigned> &frequencies, 
+                          unsigned offset, unsigned key_length) 
+{
+	char currentCharacter[1];
+	lseek(src, offset, SEEK_SET);
+	while (read(src, currentCharacter, 1) != 0) {
+		frequencies[*currentCharacter]++;
+		cout << *currentCharacter;
+		lseek(src, key_length, SEEK_CUR);
+	} 
+}
+
+/* Attacks a text ciphered with Vigenère.
+ *
+ * src - is the file descriptor of the file to attack.
+ * dest - is the file descriptor of the destination file.
+ * key_size - is the size of the key used to cipher the file pointed by src.
+ */
+void attack(int src, int dest) {
+	map<string, unsigned> substrings;
+	set<unsigned> distances;
+	findRepeatedSubstrings(src, substrings, distances);
+	unsigned key_length = findKeyLength(distances);
+	for (unsigned offset = 0; offset < key_length; ++offset) {
+		// 1. trouver la lettre la plus fréquente (e)
+		// 2. trouver la taille de la clé césar
+		// 3. déchiffrer tous les caractères qui correspondent à l'offset courant
+		map<char, unsigned> frequencies;
+		countCharFrequencies(src, frequencies, offset, key_length);
+	}
+}

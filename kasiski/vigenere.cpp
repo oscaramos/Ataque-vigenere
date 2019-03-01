@@ -41,15 +41,15 @@ static int getTmpFile(int src) {
 int main(int argc, char *argv[]) 
 {
 	int src = requireValidFileDescriptor(argv[1], O_RDONLY);
-  std::map<std::string, unsigned> strs;
-	std::set<unsigned> offsets;
 	int tmp = getTmpFile(src);
-	
-	findRepeatedSubstrings(tmp, strs, offsets);
+	//attack(tmp, 0);
 
-	int key_length = findKeyLength(offsets);
+	std::map<char, unsigned> frequencies;
+	countCharFrequencies(tmp, frequencies, 0, 5);
 
-	std::cout << "Key longueur: " << key_length << std::endl;
+	for (auto &p : frequencies) {
+		std::cout << "<" << p.first << ", " << p.second << ">" << std::endl;
+	}
 
 	unlink("tmp");
 	close(src);
