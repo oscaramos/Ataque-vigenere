@@ -14,6 +14,7 @@
 #define MAX_ARGC 5
 
 #include <map>
+#include <set>
 
 static int requireValidFileDescriptor(const char *path, int flags) {
 	int fd = open(path, flags);
@@ -27,7 +28,6 @@ static int requireValidFileDescriptor(const char *path, int flags) {
 static int getTmpFile(int src) {
 	int tmp = open("tmp", O_RDWR | O_CREAT, 0666);	
 	char buffer[1];
-	printf("Start copying.\n");
 	lseek(tmp, 0, SEEK_SET);
 	while (read(src, buffer, 1) != 0) {
 		if (isalpha(*buffer)) {
@@ -35,20 +35,22 @@ static int getTmpFile(int src) {
 			write(tmp, buffer, 1);
 		}
 	}
-	printf("Copied!\n");
 	return tmp;
 }
 
 int main(int argc, char *argv[]) 
 {
 	int src = requireValidFileDescriptor(argv[1], O_RDONLY);
-  std::map<std::string, std::vector<unsigned>> strs;
+  std::map<std::string, unsigned> strs;
+	std::set<unsigned> offsets;
 	int tmp = getTmpFile(src);
-	findRepeatedSubstrings(tmp, strs);
-  for (const auto &p : strs) {
-  	std::cout << "chaine: [" << p.first << "] occurences: " << p.second.size();
-  	std::cout << std::endl;
-  }
+	
+	findRepeatedSubstrings(tmp, strs, offsets);
+
+	int key_length = findKeyLength(offsets);
+
+	std::cout << "Key longueur: " << key_length << std::endl;
+
 	unlink("tmp");
 	close(src);
 	exit(0);

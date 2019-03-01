@@ -1,5 +1,7 @@
 #include <map>
-#include <vector>
+#include <set>
 #include <string>
 
-void findRepeatedSubstrings(int, std::map<std::string, std::vector<unsigned>> &);
+void findRepeatedSubstrings(int, std::map<std::string, unsigned> &, std::set<unsigned> &);
+
+int findKeyLength(std::set<unsigned> &);
