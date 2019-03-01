@@ -25,14 +25,17 @@ static int requireValidFileDescriptor(const char *path, int flags) {
 }
 
 static int getTmpFile(int src) {
-	int tmp = open("tmp", O_WRONLY | O_CREAT, 0644);	
+	int tmp = open("tmp", O_RDWR | O_CREAT, 0666);	
 	char buffer[1];
+	printf("Start copying.\n");
 	lseek(tmp, 0, SEEK_SET);
 	while (read(src, buffer, 1) != 0) {
 		if (isalpha(*buffer)) {
+			*buffer = tolower(*buffer);
 			write(tmp, buffer, 1);
 		}
 	}
+	printf("Copied!\n");
 	return tmp;
 }
 
@@ -40,13 +43,13 @@ int main(int argc, char *argv[])
 {
 	int src = requireValidFileDescriptor(argv[1], O_RDONLY);
   std::map<std::string, std::vector<unsigned>> strs;
-	findRepeatedSubstrings(getTmpFile(src), strs);
-
+	int tmp = getTmpFile(src);
+	findRepeatedSubstrings(tmp, strs);
   for (const auto &p : strs) {
   	std::cout << "chaine: [" << p.first << "] occurences: " << p.second.size();
-    std::cout << std::endl;
+  	std::cout << std::endl;
   }
-
+	unlink("tmp");
 	close(src);
 	exit(0);
 }

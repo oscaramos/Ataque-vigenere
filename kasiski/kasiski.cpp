@@ -6,7 +6,7 @@
 #include <utility>
 #include <string>
 #define MIN_COUNT 3
-#define MAX_COUNT 6
+#define MAX_COUNT 3
 
 typedef std::map<std::string, std::vector<unsigned>> SubstringMap;
 
@@ -38,12 +38,11 @@ void findRepeatedSubstrings(int src, SubstringMap &strs) {
 	char buffer[MAX_COUNT];
 	off_t end_offset = lseek(src, 0, SEEK_END);
 	off_t offset = lseek(src, 0, SEEK_SET);
-	unsigned n_read = -1;
 	unsigned count = MIN_COUNT;
 	while (offset + count <= end_offset) {
 		count = MIN_COUNT;
 		while (offset + count <= end_offset && count <= MAX_COUNT) {
-			n_read = read(src, buffer, count);
+			read(src, buffer, count);
 			buffer[count] = '\0';
       save(buffer, offset, strs);
 			lseek(src, offset, SEEK_SET);
