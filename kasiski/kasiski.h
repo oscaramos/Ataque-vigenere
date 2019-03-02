@@ -3,4 +3,5 @@
 #include <string>
 
 void countCharFrequencies(int, std::map<char, unsigned> &, unsigned, unsigned);
-void attack(int, int);
+void attack(int);
+void uncipher_subpart(int, unsigned, unsigned, unsigned);

@@ -25,33 +25,20 @@ static int requireValidFileDescriptor(const char *path, int flags) {
 	return fd;
 }
 
-static int getTmpFile(int src) {
-	int tmp = open("tmp", O_RDWR | O_CREAT, 0666);	
-	char buffer[1];
-	lseek(tmp, 0, SEEK_SET);
-	while (read(src, buffer, 1) != 0) {
-		if (isalpha(*buffer)) {
-			*buffer = tolower(*buffer);
-			write(tmp, buffer, 1);
-		}
+static void printMap(std::map<char, unsigned> m, std::string name) {
+	std::cout << name << std::endl;
+	for (auto &p : m) {
+		std::cout << "<" << p.first << ", " << p.second << ">" << std::endl;
 	}
-	return tmp;
 }
 
 int main(int argc, char *argv[]) 
 {
 	int src = requireValidFileDescriptor(argv[1], O_RDONLY);
-	int tmp = getTmpFile(src);
-	//attack(tmp, 0);
+	//attack(tmp);
 
-	std::map<char, unsigned> frequencies;
-	countCharFrequencies(tmp, frequencies, 0, 5);
+	uncipher_subpart(src, 0, 3, 2);
 
-	for (auto &p : frequencies) {
-		std::cout << "<" << p.first << ", " << p.second << ">" << std::endl;
-	}
-
-	unlink("tmp");
 	close(src);
 	exit(0);
 }

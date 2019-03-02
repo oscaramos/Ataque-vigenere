@@ -1,5 +1,7 @@
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <iostream>
 #include <map>
 #include <set>
@@ -123,9 +125,71 @@ void countCharFrequencies(int src, map<char, unsigned> &frequencies,
 	lseek(src, offset, SEEK_SET);
 	while (read(src, currentCharacter, 1) != 0) {
 		frequencies[*currentCharacter]++;
-		cout << *currentCharacter;
 		lseek(src, key_length, SEEK_CUR);
 	} 
+}
+
+static char findMostFrequentChar(std::map<char, unsigned> &m){
+    unsigned max_key{'a'};
+		for (const auto &p : m) {
+			if (m[max_key] < p.second) {
+				max_key = p.first;
+			}
+		}
+    return max_key;
+}
+
+static unsigned toNumber(char c) {
+	return toupper(c) - 'A';
+}
+
+static void char_uncipher(char *c, long key) {
+	for (unsigned i = 0; i < key; ++i) {
+		switch (*c) {
+			case 'A':
+				*c = 'Z';
+				break;
+			case 'a':
+				*c = 'z';
+				break;
+			default:
+				(*c)--;
+		}
+	}
+}
+
+/* Unciphers a subpart. A subpart is a group of characters that have the same
+ * offset.
+ *
+ * src - is the file descriptor of the file to uncipher.
+ * key_length - is the length of the key.
+ * key - is the key to uncipher with.
+ */
+void uncipher_subpart(int src, unsigned offset, unsigned key_length,
+                      unsigned key) 
+{
+	char currentCharacter[1];
+	lseek(src, offset, SEEK_SET);
+	while (read(src, currentCharacter, 1) != 0) {
+		if (isalpha(*currentCharacter)) {
+			char_uncipher(currentCharacter, key);
+		}
+		write(src, currentCharacter, 1);
+		lseek(src, key_length, SEEK_CUR);
+	}
+}
+
+static int getTmpFile(int src) {
+	int tmp = open("tmp", O_RDWR | O_CREAT, 0666);
+	char buffer[1];
+	lseek(tmp, 0, SEEK_SET);
+	while (read(src, buffer, 1) != 0) {
+		if (isalpha(*buffer)) {
+			*buffer = tolower(*buffer);
+			write(tmp, buffer, 1);
+		}
+	}
+	return tmp;
 }
 
 /* Attacks a text ciphered with Vigenère.
@@ -134,16 +198,23 @@ void countCharFrequencies(int src, map<char, unsigned> &frequencies,
  * dest - is the file descriptor of the destination file.
  * key_size - is the size of the key used to cipher the file pointed by src.
  */
-void attack(int src, int dest) {
+void attack(int src) {
 	map<string, unsigned> substrings;
 	set<unsigned> distances;
-	findRepeatedSubstrings(src, substrings, distances);
+	findRepeatedSubstrings(getTmpFile(src), substrings, distances);
 	unsigned key_length = findKeyLength(distances);
 	for (unsigned offset = 0; offset < key_length; ++offset) {
-		// 1. trouver la lettre la plus fréquente (e)
-		// 2. trouver la taille de la clé césar
-		// 3. déchiffrer tous les caractères qui correspondent à l'offset courant
 		map<char, unsigned> frequencies;
 		countCharFrequencies(src, frequencies, offset, key_length);
+
+		cout << "---- offset " << offset << " ----" << endl;
+		for (auto &p : frequencies) {
+			cout << "<" << p.first << ", " << p.second << ">" << endl;
+		}
+		char mostFrequent = findMostFrequentChar(frequencies);
+		printf("The most frequent character is %c.\n", mostFrequent);
+		
+		unsigned key = toNumber(mostFrequent) - 4;
+		//uncipher_subpart(src, offset, key_length, key);
 	}
 }
