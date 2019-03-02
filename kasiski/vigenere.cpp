@@ -16,26 +16,30 @@
 #include <map>
 #include <set>
 
-static int requireValidFileDescriptor(const char *path, int flags) {
-	int fd = open(path, flags);
-	if (fd == -1) {
-		perror(strerror(errno));
-		exit(1);
-	}
-	return fd;
-}
-
-static void printMap(std::map<char, unsigned> m, std::string name) {
-	std::cout << name << std::endl;
-	for (auto &p : m) {
-		std::cout << "<" << p.first << ", " << p.second << ">" << std::endl;
-	}
-}
-
-int main(int argc, char *argv[]) 
+static int requireValidFileDescriptor(const char *path, int flags)
 {
-	int src = requireValidFileDescriptor(argv[1], O_RDWR);
-	attack(src);
-	close(src);
-	exit(0);
+    int fd = open(path, flags);
+    if (fd == -1)
+    {
+        perror(strerror(errno));
+        exit(1);
+    }
+    return fd;
+}
+
+static void printMap(std::map<char, unsigned> m, std::string name)
+{
+    std::cout << name << std::endl;
+    for (auto &p : m)
+    {
+        std::cout << "<" << p.first << ", " << p.second << ">" << std::endl;
+    }
+}
+
+int main(int argc, char *argv[])
+{
+    int src = requireValidFileDescriptor(argv[1], O_RDWR);
+    attack(src);
+    close(src);
+    exit(0);
 }
