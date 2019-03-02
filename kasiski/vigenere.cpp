@@ -34,11 +34,8 @@ static void printMap(std::map<char, unsigned> m, std::string name) {
 
 int main(int argc, char *argv[]) 
 {
-	int src = requireValidFileDescriptor(argv[1], O_RDONLY);
-	//attack(tmp);
-
-	uncipher_subpart(src, 0, 3, 2);
-
+	int src = requireValidFileDescriptor(argv[1], O_RDWR);
+	attack(src);
 	close(src);
 	exit(0);
 }

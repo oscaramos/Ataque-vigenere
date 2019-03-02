@@ -9,8 +9,8 @@
 #include <string>
 
 // Greater the substrings are, the more chance to find the right length
-#define MIN_COUNT 10 // Replace this value
-#define MAX_COUNT 10 // Replace this value
+#define MIN_COUNT 5 // Replace this value
+#define MAX_COUNT 5 // Replace this value
 #define MAX_DIVISOR 30000
 
 using namespace std;
@@ -169,13 +169,18 @@ void uncipher_subpart(int src, unsigned offset, unsigned key_length,
                       unsigned key) 
 {
 	char currentCharacter[1];
-	lseek(src, offset, SEEK_SET);
+	unsigned current_offset = lseek(src, offset, SEEK_SET);
+	unsigned treated = 0;
 	while (read(src, currentCharacter, 1) != 0) {
 		if (isalpha(*currentCharacter)) {
-			char_uncipher(currentCharacter, key);
+			if (treated % key_length == 0) {
+				char_uncipher(currentCharacter, key);
+				lseek(src, -1, SEEK_CUR);
+				write(src, currentCharacter, 1);
+			}
+			treated++;
 		}
-		write(src, currentCharacter, 1);
-		lseek(src, key_length, SEEK_CUR);
+		current_offset++;
 	}
 }
 
@@ -192,6 +197,20 @@ static int getTmpFile(int src) {
 	return tmp;
 }
 
+/* Gets the key used to cipher the given key. The result is based on the 
+ * assumption that e is the most frequent letter in english.
+ */
+static unsigned getKey(char c) {
+	for (unsigned i = 0; i < 4; ++i) {
+		if (c == 'a') {
+			c = 'z';
+		} else {
+			c--;
+		}
+	}
+	return toNumber(c);
+}
+
 /* Attacks a text ciphered with Vigenère.
  *
  * src - is the file descriptor of the file to attack.
@@ -201,20 +220,16 @@ static int getTmpFile(int src) {
 void attack(int src) {
 	map<string, unsigned> substrings;
 	set<unsigned> distances;
-	findRepeatedSubstrings(getTmpFile(src), substrings, distances);
+	int tmp = getTmpFile(src);
+	findRepeatedSubstrings(tmp, substrings, distances);
 	unsigned key_length = findKeyLength(distances);
+	cout << "Key length is " << key_length << endl;
 	for (unsigned offset = 0; offset < key_length; ++offset) {
 		map<char, unsigned> frequencies;
-		countCharFrequencies(src, frequencies, offset, key_length);
-
-		cout << "---- offset " << offset << " ----" << endl;
-		for (auto &p : frequencies) {
-			cout << "<" << p.first << ", " << p.second << ">" << endl;
-		}
+		countCharFrequencies(tmp, frequencies, offset, key_length);
 		char mostFrequent = findMostFrequentChar(frequencies);
-		printf("The most frequent character is %c.\n", mostFrequent);
-		
-		unsigned key = toNumber(mostFrequent) - 4;
-		//uncipher_subpart(src, offset, key_length, key);
+		unsigned key = getKey(mostFrequent);
+		uncipher_subpart(src, offset, key_length, key);
+		unlink("tmp");
 	}
 }
