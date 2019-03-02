@@ -1,13 +1,8 @@
-vigenere: cipher.o vigenere.o
-	@gcc -o vigenere cipher.o vigenere.o
-	@rm cipher.o
-	@rm vigenere.o
+vigenere: cipher.o main.o
+	@gcc -o vigenere cipher.o main.o
 
-cipher.o: cipher.c
-	@gcc -c cipher.c
+cipher.o: ./cipher/cipher.c
+	@gcc -c ./cipher/cipher.c
 
-vigenere.o: vigenere.c
-	@gcc -c vigenere.c
-
-clean:
-	@rm vigenere
+main.o: main.c
+	@gcc -c main.c

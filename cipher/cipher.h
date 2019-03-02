@@ -1,7 +1,6 @@
-/* This file contains the declarations of functions useful to the Vigenere 
+/* Project: vigenere_cipher
+ * Description: this file contains the declarations of functions useful to the Vigenere 
  * cipher.
- *
- * author - Logan Farci (47923), group D113
  */
 
 void keyToValues(char *, unsigned *);

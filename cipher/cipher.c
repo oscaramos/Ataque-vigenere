@@ -1,11 +1,11 @@
-/* This file contains all the functions useful to the Vigenere cipher. 
- *
- * author - Logan Farci (47923), group D113
+/* Project: vigenere_cipher
+ * Description: this file contains all the functions useful to the Vigenere 
+ * cipher. 
  */
 
-#include <stdlib.h> // malloc
-#include <unistd.h> // read, write
-#include "ctype.h" // toupper
+#include <stdlib.h>
+#include <unistd.h>
+#include "ctype.h"
 #include <stdio.h>
 #define COUNT 1
 #define ALPHABET_SIZE 26

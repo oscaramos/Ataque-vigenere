@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include "cipher.h"
+#include "cipher/cipher.h"
 #define COUNT 1
 #define MIN_ARGC 4
 #define MAX_ARGC 5
@@ -27,9 +27,13 @@ static void requireAKey(int argc) {
 	}
 }
 
-/* argv[1] is the path to the source file
- * argv[2] is the path to the destination file
- * argv[3] is the key
+/* argv contains (in the following order):
+ * - argv[1]: 
+ *  - "cipher" to cipher the content of the source file with a key.
+ *  - "unipher" to uncipher the content of the source file with a key.
+ *  - "attack" to uncipher the content of the source file without a key.
+ * - argv[2] contains the path to the file where to store the result.
+ * - argv[3] contains the key when needed.
  */
 int main(int argc, char *argv[]) 
 {
