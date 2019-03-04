@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <vector>
 #include <utility>
 #include <string>
 
@@ -76,35 +77,6 @@ static void char_uncipher(char *c, long key)
     }
 }
 
-/* Unciphers a subpart. A subpart is a group of characters that have the same
- * offset.
- *
- * src - is the file descriptor of the file to uncipher.
- * key_length - is the length of the key.
- * key - is the key to uncipher with.
- */
-void uncipher_subpart(int src, unsigned offset, unsigned key_length,
-                      unsigned key)
-{
-    char currentCharacter[1];
-    unsigned current_offset = lseek(src, offset, SEEK_SET);
-    unsigned treated = 0;
-    while (read(src, currentCharacter, 1) != 0)
-    {
-        if (isalpha(*currentCharacter))
-        {
-            if (treated % key_length == 0)
-            {
-                char_uncipher(currentCharacter, key);
-                lseek(src, -1, SEEK_CUR);
-                write(src, currentCharacter, 1);
-            }
-            treated++;
-        }
-        current_offset++;
-    }
-}
-
 /* Copies src into a second file keeping alphabetic characters only and
  * converting them to lower case.
  */
@@ -124,29 +96,47 @@ static int getLowerCaseCharFile(int src)
     return tmp;
 }
 
+char toLetter(unsigned index) {
+	char letters[26] = {
+		'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s',
+		't','u','v','w','x','y','z'
+	};
+	return letters[index];
+}
+
+/* Gets the key used to cipher the given key. The result is based on the 
+ * assumption that e is the most frequent letter in english.
+ */
+static unsigned getKey(char c) {
+	for (unsigned i = 0; i < 4; ++i) {
+		if (c == 'a') {
+			c = 'z';
+		} else {
+			c--;
+		}
+	}
+	return toNumber(c);
+}
+
 /* Attacks a text ciphered with Vigenère.
  *
  * src - is the file descriptor of the file to attack.
  * dest - is the file descriptor of the destination file.
  * key_size - is the size of the key used to cipher the file pointed by src.
  */
-void attack(int src)
+std::vector<unsigned> findKey(int src, int dest)
 {
     int tmp = getLowerCaseCharFile(src);
+		std::vector<unsigned> keys;
     unsigned key_length = findKeyLength(tmp);
     for (unsigned offset = 0; offset < key_length; ++offset)
     {
         map<char, unsigned> frequencies;
-        countCharFrequencies(tmp, frequencies, offset, key_length);
-        
-        std::cout << "offset " << offset << std::endl;
-        for (auto &f: frequencies)
-            std::cout << "<" << f.first << ", " << f.second << ">" << std::endl;
-        
+				countCharFrequencies(tmp, frequencies, offset, key_length);
         char mostFrequent = findMostFrequentChar(frequencies);
-        unsigned key = getKey(mostFrequent);
-        std::cout << "Offset: " << offset << " Most frequend: " << mostFrequent << " Key: " << key;
-        std::cout << " Key0: " << key0 << std::endl;
+        unsigned key = getKey(mostFrequent);	
+				keys.push_back(key);
     }
     unlink("tmp");
+		return keys; 
 }

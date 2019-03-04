@@ -7,7 +7,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <vector>
+
 #include "cipher_tool/cipher.h"
+#include "frequential_analysis/kasiski.h"
+#include "frequential_analysis/keylength.h"
 
 #define COUNT 1
 #define MIN_ARGC 4
@@ -49,7 +53,7 @@ int main(int argc, char *argv[])
         exit(3);
     }
 
-    int src = requireValidFileDescriptor(argv[2], O_RDONLY);
+    int src = requireValidFileDescriptor(argv[2], O_RDWR);
     int dest = open(argv[3], O_WRONLY | O_CREAT, 0666);
 
     if (strcmp("attack", argv[1]) != 0)
@@ -68,10 +72,11 @@ int main(int argc, char *argv[])
     }
     else
     {
-        printf("Attacking...\n");
-        caesarFrequentialAnalysisAttack(src, dest);
+			printf("Attacking...\n");
+			std::vector<unsigned> keys = findKey(src, dest);
+			unsigned *k = &keys[0];
+			uncipher(src, dest, k, keys.size());
     }
-
     close(src);
     close(dest);
     exit(0);
