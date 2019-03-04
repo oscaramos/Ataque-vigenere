@@ -6,7 +6,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include "cipher/cipher.h"
+
+#include "cipher_tool/cipher.h"
+
 #define COUNT 1
 #define MIN_ARGC 4
 #define MAX_ARGC 5

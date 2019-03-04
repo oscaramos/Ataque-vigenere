@@ -8,7 +8,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <ctype.h>
+
 #include "kasiski.h"
+#include "keylength.h"
+
 #define COUNT 1
 #define MIN_ARGC 4
 #define MAX_ARGC 5
@@ -27,7 +30,7 @@ static int requireValidFileDescriptor(const char *path, int flags)
     return fd;
 }
 
-static void printMap(std::map<char, unsigned> m, std::string name)
+static void printMap(std::map<unsigned, unsigned> m, std::string name)
 {
     std::cout << name << std::endl;
     for (auto &p : m)
@@ -38,8 +41,9 @@ static void printMap(std::map<char, unsigned> m, std::string name)
 
 int main(int argc, char *argv[])
 {
-    int src = requireValidFileDescriptor(argv[1], O_RDWR);
-    attack(src);
-    close(src);
+   int src = requireValidFileDescriptor(argv[1], O_RDWR);
+   unsigned key = findKeyLength(src);
+   std::cout << "The key length is " << key << std::endl;
+   // close(src);
     exit(0);
 }
