@@ -103,26 +103,6 @@ static unsigned findMostFrequentDivisor(std::map<unsigned, unsigned> &divisors)
     return mostFrequentDivisor;
 }
 
-/* Copies src into a second file keeping alphabetic characters only and
- * converting them to lower case.
- */
-static int getLowerCaseCharFile(int src)
-{
-    int tmp = open("tmp", O_RDWR | O_CREAT, 0666);
-    char buffer[1];
-    lseek(tmp, 0, SEEK_SET);
-    while (read(src, buffer, 1) != 0)
-    {   
-        if (isalpha(*buffer))
-        {
-            *buffer = tolower(*buffer);
-            write(tmp, buffer, 1); 
-        }
-    }   
-    return tmp;
-}
-
-
 /* Finds the length of the key used to cipher a text with Vigènere cipher.
  *
  * distances - are the distances between all the substring.
@@ -132,8 +112,7 @@ unsigned findKeyLength(int src)
     map<string, unsigned> substrings;
     map<unsigned, unsigned> divisors;
     set<unsigned> distances;
-    int tmp = getLowerCaseCharFile(src);
-    findRepeatedSubstrings(tmp, substrings, distances);
+    findRepeatedSubstrings(src, substrings, distances);
     findDistancesDivisorsFrequencies(divisors, distances);
     unsigned key_length = findMostFrequentDivisor(divisors);
     return key_length;

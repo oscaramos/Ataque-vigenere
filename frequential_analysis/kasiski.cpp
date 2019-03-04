@@ -24,11 +24,19 @@ void countCharFrequencies(int src, map<char, unsigned> &frequencies,
                           unsigned offset, unsigned key_length)
 {
     char currentCharacter[1];
-    lseek(src, offset, SEEK_SET);
+    unsigned current_offset = lseek(src, offset, SEEK_SET);
+    unsigned treated = 0;
     while (read(src, currentCharacter, 1) != 0)
     {
-        frequencies[*currentCharacter]++;
-        lseek(src, key_length, SEEK_CUR);
+        if (isalpha(*currentCharacter))
+        {
+            if (treated % key_length == 0)
+            {
+                frequencies[*currentCharacter]++;
+            }
+            treated++;
+        }
+        current_offset++;
     }
 }
 
@@ -106,33 +114,14 @@ static int getLowerCaseCharFile(int src)
     char buffer[1];
     lseek(tmp, 0, SEEK_SET);
     while (read(src, buffer, 1) != 0)
-    {
+    {   
         if (isalpha(*buffer))
         {
             *buffer = tolower(*buffer);
-            write(tmp, buffer, 1);
+            write(tmp, buffer, 1); 
         }
-    }
+    }   
     return tmp;
-}
-
-/* Gets the key used to cipher the given key. The result is based on the 
- * assumption that e is the most frequent letter in english.
- */
-static unsigned getKey(char c)
-{
-    for (unsigned i = 0; i < 4; ++i)
-    {
-        if (c == 'a')
-        {
-            c = 'z';
-        }
-        else
-        {
-            c--;
-        }
-    }
-    return toNumber(c);
 }
 
 /* Attacks a text ciphered with Vigenère.
@@ -143,20 +132,21 @@ static unsigned getKey(char c)
  */
 void attack(int src)
 {
-    //map<string, unsigned> substrings;
-    //set<unsigned> distances;
     int tmp = getLowerCaseCharFile(src);
-    //findRepeatedSubstrings(tmp, substrings, distances);
-    //unsigned key_length = findKeyLength(distances);
-    //cout << "Key length is " << key_length << endl;
-    unsigned key_length = 0;
+    unsigned key_length = findKeyLength(tmp);
     for (unsigned offset = 0; offset < key_length; ++offset)
     {
         map<char, unsigned> frequencies;
         countCharFrequencies(tmp, frequencies, offset, key_length);
+        
+        std::cout << "offset " << offset << std::endl;
+        for (auto &f: frequencies)
+            std::cout << "<" << f.first << ", " << f.second << ">" << std::endl;
+        
         char mostFrequent = findMostFrequentChar(frequencies);
         unsigned key = getKey(mostFrequent);
-        uncipher_subpart(src, offset, key_length, key);
-        unlink("tmp");
+        std::cout << "Offset: " << offset << " Most frequend: " << mostFrequent << " Key: " << key;
+        std::cout << " Key0: " << key0 << std::endl;
     }
+    unlink("tmp");
 }
