@@ -7,7 +7,7 @@ Once the project is cloned locally, run the following commands...
 $ cd <path to the project directory>
 $ make
 ```
-
+**Note:** the code use the POSIX operating system API. This code only run Unix systems.
 # How to use
 ## General ommand
 ```
