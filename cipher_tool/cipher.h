@@ -1,4 +1,4 @@
-void keyToValues(char *, unsigned *);
+void keyToValues(const char *, unsigned *);
 
 void cipher(int, int, unsigned *, unsigned);
 

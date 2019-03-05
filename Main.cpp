@@ -10,7 +10,7 @@
 #include "frequential_analysis/keylength.h"
 
 #define MIN_ARGC 4
-#define MAX_ARGC 5
+#define MAX_ARGC 6
 
 static int requireValidFileDescriptor(const char *path, int flags)
 {
@@ -27,8 +27,8 @@ static void requireAKey(int argc)
 {
     if (argc < MAX_ARGC)
     {
-        std::cout << "No key given! If you don't know the key, you could try a"; 
-        std::cout << "frequential analysis attack.\n";
+        std::cout << "No key given! If you don't know the key, you could try a";
+        std::cout << " frequential analysis attack.\n";
         exit(2);
     }
 }
@@ -37,17 +37,17 @@ static void requireAKey(int argc)
 static char toLetter(unsigned index)
 {
     char letters[26] = {
-        'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q',
-        'r','s','t','u','v','w','x','y','z'
-    };
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
+        'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
     return letters[index];
 }
 
 // Prints the given vector of keys as a string.
-static void printKey(std::vector<unsigned> keys) 
+static void printKey(std::vector<unsigned> keys)
 {
     std::cout << "The key is \"";
-    for (const auto &key : keys) std::cout << toLetter(key);
+    for (const auto &key : keys)
+        std::cout << toLetter(key);
     std::cout << "\"" << std::endl;
 }
 
@@ -59,39 +59,67 @@ static void printKey(std::vector<unsigned> keys)
  * - argv[2] contains the path to the file where to store the result.
  * - argv[3] contains the key when needed.
  */
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
     if (argc < MIN_ARGC)
     {
-        printf("usage: ./vigenere <cipher | uncipher | attack> <source> <destination> [key]\n");
+        std::cout << "usage: ./sec <cipher | uncipher | attack>";
+        std::cout << " <-vigenere | -caesar> <source>";
+        std::cout << " <destination> [key]\n";
         exit(3);
     }
 
-    int src = requireValidFileDescriptor(argv[2], O_RDWR);
-    int dest = open(argv[3], O_WRONLY | O_CREAT, 0666);
+    const char *action_type = argv[1];
+    const char *cipher_type = argv[2];
+    const char *source_path = argv[3];
+    const char *destination_path = argv[4];
 
-    if (strcmp("attack", argv[1]) != 0)
+    int src = requireValidFileDescriptor(source_path, O_RDWR);
+    int dest = open(destination_path, O_WRONLY | O_CREAT, 0666);
+
+    if (strcmp("attack", action_type) == 0)
+    {
+        std::cout << "Attacking " << source_path << "...\n";
+        if (strcmp("-vigenere", cipher_type) == 0)
+        {
+            std::vector<unsigned> keys = findKey(src, dest);
+            printKey(keys);
+            unsigned *k = &keys[0];
+            uncipher(src, dest, k, keys.size());
+        }
+        else if (strcmp("-caesar", cipher_type) == 0)
+        {
+            caesarFrequentialAnalysisAttack(src, dest);
+        }
+        else
+        {
+            std::cout << "Unkown type of cipher! Here are your options:";
+            std::cout << " -vigenere or -caesar.\n";
+            exit(1);
+        }
+        std::cout << destination_path << " contains the unciphered text.\n";
+    }
+    else if (strcmp("uncipher", action_type) == 0 || strcmp("cipher", action_type) == 0)
     {
         requireAKey(argc);
-        unsigned keys[strlen(argv[4])];
-        keyToValues(argv[4], keys);
+        unsigned keys[strlen(argv[5])];
+        keyToValues(argv[5], keys);
         if (strcmp("cipher", argv[1]) == 0)
         {
-            cipher(src, dest, keys, strlen(argv[4]));
+            cipher(src, dest, keys, strlen(argv[5]));
+            std::cout << "Ciphered text of " << source_path << " is in " << destination_path << ".\n";
         }
         else if (strcmp("uncipher", argv[1]) == 0)
         {
-            uncipher(src, dest, keys, strlen(argv[4]));
+            uncipher(src, dest, keys, strlen(argv[5]));
+            std::cout << "Unciphered text of " << source_path << " is in " << destination_path << ".\n";
         }
     }
     else
     {
-			std::cout << "Attacking " << argv[2] << "...\n";
-			std::vector<unsigned> keys = findKey(src, dest);
-            printKey(keys);
-			unsigned *k = &keys[0];
-			uncipher(src, dest, k, keys.size());
-            std::cout << argv[3] << " contains the unciphered text.\n";
+        std::cout << "Unkown type of action! Here are your options: cipher";
+        std::cout << " uncipher or attack.";
+        exit(1);
     }
     close(src);
     close(dest);

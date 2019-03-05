@@ -27,7 +27,7 @@ static unsigned toNumber(char c) {
  * key - is a key user to cipher (or uncipher).
  * values - is an array that should contain the key values.
  */
-void keyToValues(char *key, unsigned *values) {
+void keyToValues(const char *key, unsigned *values) {
 	unsigned i;
 	for	(i = 0; key[i] != '\0'; i++) {
 		values[i] = toNumber(key[i]); 

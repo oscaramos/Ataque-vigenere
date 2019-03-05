@@ -1,5 +1,6 @@
-vigenere: cipher.o kasiski.o keylength.o Main.o
-	@g++ -o vigenere cipher.o kasiski.o keylength.o Main.o
+sec: cipher.o kasiski.o keylength.o Main.o
+	@g++ -o sec cipher.o kasiski.o keylength.o Main.o
+	@echo "The project has been built."
 
 cipher.o: ./cipher_tool/cipher.c
 	@g++ -c cipher_tool/cipher.c
