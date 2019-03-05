@@ -15,3 +15,5 @@ Main.o: Main.cpp
 
 clean:
 	@rm *.o
+	@rm vigenere
+

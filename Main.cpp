@@ -1,19 +1,14 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include <iostream>
+#include <cstring>
+#include <cerrno>
 #include <unistd.h>
-
+#include <fcntl.h>
 #include <vector>
 
 #include "cipher_tool/cipher.h"
 #include "frequential_analysis/kasiski.h"
 #include "frequential_analysis/keylength.h"
 
-#define COUNT 1
 #define MIN_ARGC 4
 #define MAX_ARGC 5
 
@@ -32,9 +27,28 @@ static void requireAKey(int argc)
 {
     if (argc < MAX_ARGC)
     {
-        printf("No key given! If you don't know the key, you could try a frequential analysis attack.\n");
+        std::cout << "No key given! If you don't know the key, you could try a"; 
+        std::cout << "frequential analysis attack.\n";
         exit(2);
     }
+}
+
+// Converts the given number to the letter of the latin alphabet corresponding.
+static char toLetter(unsigned index)
+{
+    char letters[26] = {
+        'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q',
+        'r','s','t','u','v','w','x','y','z'
+    };
+    return letters[index];
+}
+
+// Prints the given vector of keys as a string.
+static void printKey(std::vector<unsigned> keys) 
+{
+    std::cout << "The key is \"";
+    for (const auto &key : keys) std::cout << toLetter(key);
+    std::cout << "\"" << std::endl;
 }
 
 /* argv contains (in the following order):
@@ -72,10 +86,12 @@ int main(int argc, char *argv[])
     }
     else
     {
-			printf("Attacking...\n");
+			std::cout << "Attacking " << argv[2] << "...\n";
 			std::vector<unsigned> keys = findKey(src, dest);
+            printKey(keys);
 			unsigned *k = &keys[0];
 			uncipher(src, dest, k, keys.size());
+            std::cout << argv[3] << " contains the unciphered text.\n";
     }
     close(src);
     close(dest);

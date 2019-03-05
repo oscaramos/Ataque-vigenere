@@ -1,8 +1,8 @@
-# Vigenere cipher
-More information about the Vigenere cipher [here](https://en.wikipedia.org/wiki/Vigen%C3%A8re_cipher).
+# Frequential analysis
+Assignment submitted by Logan Farci (47923) and Anthony Farci (49737) for the Security course of Mr Absil (ABS).
 
-# How to
-## Call
+# How to use
+## Command
 ```
 ./vigenere <cipher | uncipher> <source> <destination> <your key>
 ```
@@ -36,4 +36,5 @@ Let's uncipher the content of the ```ciphered_message``` file with our key: *exa
 
 ```ciphered_message``` file contains the original message.
 
-
+# Known bugs
+- All the frequential analysis is based on the fact that the letter 'e' is the most frequent in English. Trying to attack a text that does not respect this assumption will result in gibberish. 

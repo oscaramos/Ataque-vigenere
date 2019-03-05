@@ -2,13 +2,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <iostream>
 #include <map>
 #include <set>
-#include <utility>
-#include <string>
 
-// Greater the substrings are, the more chance to find the right length
 #define MIN_COUNT 10 // Replace this value
 #define MAX_COUNT 10 // Replace this value
 
@@ -16,35 +12,39 @@ using namespace std;
 
 typedef map<string, unsigned> SubstringMap;
 
-/* Saves the given string with its offset in the given map.
+/* Saves the given repeated substring with its distance.
  *
- * str - is the string used as the key.
+ * str - is the string to save.
  * offset - is the offset where string was located in its file.
- * strs - is the map where to save the data.
+ * strs - is a map associating repeated substrings with a distance between two
+ * occurences.
+ * distances - is a set of all distances between repeated substrings. 
  */
-static void save(const char *str, unsigned offset, SubstringMap &strs,
-                 set<unsigned> &offsets)
+static void getDistance(const char *str, unsigned offset, SubstringMap &strs,
+                 set<unsigned> &distances)
 {
-    string ngram{str};
-    auto result = strs.find(ngram);
+    string substring{str};
+    auto result = strs.find(substring);
     if (result == strs.end())
     {
-        strs.insert(pair<string, unsigned>(ngram, offset));
+        strs.insert(pair<string, unsigned>(substring, offset));
     }
     else
     {
         unsigned last_offset = result->second;
-        offsets.insert(offset - last_offset);
+        distances.insert(offset - last_offset);
     }
 }
 
 /* Finds all the repeated substrings in the file described by src of a size
- * between MIN_COUNT and MAX_COUNT.
+ * between MIN_COUNT and MAX_COUNT. 
  *
  * src - is the file descriptor of the file to search in.
- * strs - is a map on the substring with the substring occurences as value. 
+ * strs - is a map associating a repeated substring with its distance to the
+ * next one.
+ * distances - is a set of distances between encountered repeated substrings.  
  */
-void findRepeatedSubstrings(int src, SubstringMap &strs, set<unsigned> &offsets)
+void findRepeatedSubstrings(int src, SubstringMap &strs, set<unsigned> &distances)
 {
     char buffer[MAX_COUNT];
     off_t end_offset = lseek(src, 0, SEEK_END);
@@ -56,7 +56,7 @@ void findRepeatedSubstrings(int src, SubstringMap &strs, set<unsigned> &offsets)
         {
             read(src, buffer, count);
             buffer[count] = '\0';
-            save(buffer, offset, strs, offsets);
+            getDistance(buffer, offset, strs, distances);
             lseek(src, offset + 1, SEEK_SET);
             count++;
         }
@@ -65,30 +65,40 @@ void findRepeatedSubstrings(int src, SubstringMap &strs, set<unsigned> &offsets)
     }
 }
 
-void findDistanceDivisors(unsigned distance, map<unsigned, unsigned> &divisors)
+/* Counts all the divisors of the given distance.
+ *
+ * distance - is the distance to find the divisors for.
+ * divisors - is a map associating a divisors with its occurences. It contains
+ * pairs for all the previously encountered divisors.
+ */
+void countDistanceDivisors(unsigned distance, map<unsigned, unsigned> &divisors)
 {
     for (int divisor = 2; divisor <= distance; divisor++)
     {
         if (distance % divisor == 0)
         {
             divisors[divisor]++;
-        }  
+        }
     }
 }
 
-static void findDistancesDivisorsFrequencies(map<unsigned, unsigned> &divisors, 
-                                           const set<unsigned> &distances)
+/* Finds the distances divisors frquencies.
+ * 
+ * divisors - is a map associating a divisor to its frequency.
+ * distances - is a set of all encoutered distances between substring.
+ */
+static void findDistancesDivisorsFrequencies(map<unsigned, unsigned> &divisors,
+                                             const set<unsigned> &distances)
 {
     for (const auto &distance : distances)
     {
-        findDistanceDivisors(distance, divisors);    
+        countDistanceDivisors(distance, divisors);
     }
 }
 
-/* Finds the divisor that can divide the most of the distances.
+/* Finds the most frequent distance divisor.
  *
- * divisors - is a map on the divisor with the divisor number of possible distance
- * division.
+ * divisors - is a map associating a divisor to its frequency.
  */
 static unsigned findMostFrequentDivisor(std::map<unsigned, unsigned> &divisors)
 {
@@ -105,7 +115,7 @@ static unsigned findMostFrequentDivisor(std::map<unsigned, unsigned> &divisors)
 
 /* Finds the length of the key used to cipher a text with Vigènere cipher.
  *
- * distances - are the distances between all the substring.
+ * src is the file to find the key length for.
  */
 unsigned findKeyLength(int src)
 {

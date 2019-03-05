@@ -5,8 +5,8 @@
 
 #include <stdlib.h>
 #include <unistd.h>
-#include "ctype.h"
-#include <stdio.h>
+#include <ctype.h>
+
 #define COUNT 1
 #define ALPHABET_SIZE 26
 
@@ -181,4 +181,5 @@ void caesarFrequentialAnalysisAttack(int src, int dest) {
 		}
 		write(dest, buffer, COUNT);
 	} 
+	free(frequencies);
 }
