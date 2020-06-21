@@ -85,7 +85,7 @@ void cipher(int src, int dest, unsigned *keys, unsigned keys_size) {
 			next(&step, keys_size);
 		}
 		write(dest, buffer, COUNT);
-	} 
+	}
 }
 
 /* Unciphers the given character with the given key.
@@ -108,7 +108,7 @@ static void char_uncipher(char *c, long key) {
 	}
 }
 
-/* Unciphers the content of src based on the given keys and stores the result 
+/* Unciphers the content of src based on the given keys and stores the result
  * in dest.
  *
  * src - is the file descriptor of the file to uncipher the content from.
@@ -126,7 +126,7 @@ void uncipher(int src, int dest, unsigned *keys, unsigned keys_size) {
 			next(&step, keys_size);
 		}
 		write(dest, buffer, COUNT);
-	} 
+	}
 }
 
 /* Gets the index of the greatest value in the given array.
@@ -151,35 +151,13 @@ static unsigned max_idx(unsigned *arr, unsigned size) {
  * frequencies - is an array (initialized to 0) of 26 unsigned integers used to
  * store the frequencies.
  */
-static void countAlphaCharFrequencies(int src, unsigned *frequencies) {	
+static void countAlphaCharFrequencies(int src, unsigned *frequencies) {
 	char buffer[COUNT];
 	lseek(src, 0, SEEK_SET);
 	while (read(src, buffer, COUNT) != 0) {
 		char currentCharacter = *buffer;
 		if (isalpha(currentCharacter)) {
-			frequencies[toNumber(currentCharacter)]++;	
+			frequencies[toNumber(currentCharacter)]++;
 		}
-	} 
-}
-
-/* Unciphers the content of src without the key. It is only possible if the
- * key is of lenght 1 (Caesar cipher).
- *
- * src - is the file descriptor of the file to uncipher.
- * dest - is the file descriptor of the file where to store the unciphered text.
- */
-void caesarFrequentialAnalysisAttack(int src, int dest) {
-	unsigned *frequencies = (unsigned *) calloc(ALPHABET_SIZE, sizeof(unsigned));
-	countAlphaCharFrequencies(src, frequencies);
-	unsigned mostFrequentCharacter = max_idx(frequencies, ALPHABET_SIZE);
-	unsigned key = mostFrequentCharacter - 4;
-	char buffer[COUNT];
-	lseek(src, 0, SEEK_SET);
-	while (read(src, buffer, COUNT) != 0) {
-		if (isalpha(*buffer)) {
-			char_uncipher(buffer, key);
-		}
-		write(dest, buffer, COUNT);
-	} 
-	free(frequencies);
+	}
 }

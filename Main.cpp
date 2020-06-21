@@ -10,7 +10,7 @@
 #include "frequential_analysis/keylength.h"
 
 #define MIN_ARGC 4
-#define MAX_ARGC 6
+#define MAX_ARGC 5
 
 static int requireValidFileDescriptor(const char *path, int flags)
 {
@@ -51,6 +51,11 @@ static void printKey(std::vector<unsigned> keys)
     std::cout << "\"" << std::endl;
 }
 
+/* Compilation line
+ * g++ Main.cpp frequential_analysis/kasiski.cpp frequential_analysis/keylength.cpp cipher_tool/cipher.c
+-o vigenere
+ */
+
 /* argv contains (in the following order):
  * - argv[1]: 
  *  - "cipher" to cipher the content of the source file with a key.
@@ -63,16 +68,14 @@ int main(int argc, const char *argv[])
 {
     if (argc < MIN_ARGC)
     {
-        std::cout << "usage: ./sec <cipher | uncipher | attack>";
-        std::cout << " <-vigenere | -caesar> <source>";
-        std::cout << " <destination> [key]\n";
+        std::cout << "usage: ./sec <cipher | uncipher | attack> <source> <destination> [key]\n";
         exit(3);
     }
 
     const char *action_type = argv[1];
-    const char *cipher_type = argv[2];
-    const char *source_path = argv[3];
-    const char *destination_path = argv[4];
+//    const char *cipher_type = argv[2];
+    const char *source_path = argv[2];
+    const char *destination_path = argv[3];
 
     int src = requireValidFileDescriptor(source_path, O_RDWR);
     int dest = open(destination_path, O_WRONLY | O_CREAT, 0666);
@@ -80,38 +83,26 @@ int main(int argc, const char *argv[])
     if (strcmp("attack", action_type) == 0)
     {
         std::cout << "Attacking " << source_path << "...\n";
-        if (strcmp("-vigenere", cipher_type) == 0)
-        {
-            std::vector<unsigned> keys = findKey(src, dest);
-            printKey(keys);
-            unsigned *k = &keys[0];
-            uncipher(src, dest, k, keys.size());
-        }
-        else if (strcmp("-caesar", cipher_type) == 0)
-        {
-            caesarFrequentialAnalysisAttack(src, dest);
-        }
-        else
-        {
-            std::cout << "Unkown type of cipher! Here are your options:";
-            std::cout << " -vigenere or -caesar.\n";
-            exit(1);
-        }
+        // Vigenere attack
+        std::vector<unsigned> keys = findKey(src, dest);
+        printKey(keys);
+        unsigned *k = &keys[0];
+        uncipher(src, dest, k, keys.size());
         std::cout << destination_path << " contains the unciphered text.\n";
     }
-    else if (strcmp("uncipher", action_type) == 0 || strcmp("cipher", action_type) == 0)
+    else if (strcmp("cipher", action_type) == 0 || strcmp("uncipher", action_type) == 0)
     {
         requireAKey(argc);
-        unsigned keys[strlen(argv[5])];
-        keyToValues(argv[5], keys);
+        unsigned keys[strlen(argv[4])];
+        keyToValues(argv[4], keys);
         if (strcmp("cipher", argv[1]) == 0)
         {
-            cipher(src, dest, keys, strlen(argv[5]));
+            cipher(src, dest, keys, strlen(argv[4]));
             std::cout << "Ciphered text of " << source_path << " is in " << destination_path << ".\n";
         }
         else if (strcmp("uncipher", argv[1]) == 0)
         {
-            uncipher(src, dest, keys, strlen(argv[5]));
+            uncipher(src, dest, keys, strlen(argv[4]));
             std::cout << "Unciphered text of " << source_path << " is in " << destination_path << ".\n";
         }
     }
