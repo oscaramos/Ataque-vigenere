@@ -23,16 +23,6 @@ static int requireValidFileDescriptor(const char *path, int flags)
     return fd;
 }
 
-static void requireAKey(int argc)
-{
-    if (argc < MAX_ARGC)
-    {
-        std::cout << "No key given! If you don't know the key, you could try a";
-        std::cout << " frequential analysis attack.\n";
-        exit(2);
-    }
-}
-
 // Converts the given number to the letter of the latin alphabet corresponding.
 static char toLetter(unsigned index)
 {
@@ -76,6 +66,8 @@ int main(int argc, const char *argv[])
 //    const char *cipher_type = argv[2];
     const char *source_path = argv[2];
     const char *destination_path = argv[3];
+    const char *key = argv[4];
+    const int key_len = strlen(key);
 
     int src = requireValidFileDescriptor(source_path, O_RDWR);
     int dest = open(destination_path, O_WRONLY | O_CREAT, 0666);
@@ -92,17 +84,16 @@ int main(int argc, const char *argv[])
     }
     else if (strcmp("cipher", action_type) == 0 || strcmp("uncipher", action_type) == 0)
     {
-        requireAKey(argc);
-        unsigned keys[strlen(argv[4])];
-        keyToValues(argv[4], keys);
-        if (strcmp("cipher", argv[1]) == 0)
+        unsigned keys[key_len];
+        keyToValues(key, keys);
+        if (strcmp("cipher", action_type) == 0)
         {
-            cipher(src, dest, keys, strlen(argv[4]));
+            cipher(src, dest, keys, key_len);
             std::cout << "Ciphered text of " << source_path << " is in " << destination_path << ".\n";
         }
-        else if (strcmp("uncipher", argv[1]) == 0)
+        else if (strcmp("uncipher", action_type) == 0)
         {
-            uncipher(src, dest, keys, strlen(argv[4]));
+            uncipher(src, dest, keys, key_len);
             std::cout << "Unciphered text of " << source_path << " is in " << destination_path << ".\n";
         }
     }
