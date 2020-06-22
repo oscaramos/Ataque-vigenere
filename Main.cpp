@@ -45,10 +45,10 @@ static void printKey(std::vector<unsigned> keys) {
 /*
  * Examples
  * Cipher
- * vigenere.exe cipher original.txt ciphed.txt mi_llave
+ * vigenere.exe cipher original.txt ciphed.txt MY_KEY
  *
  * Uncipher
- * vigenere.exe uncipher ciphed.txt unciphered.txt mi_llave_privada
+ * vigenere.exe uncipher ciphed.txt unciphered.txt MY_KEY
  *
  * Attack
  * vigenere.exe attack ciphed.txt unciphered_by_attack.txt
