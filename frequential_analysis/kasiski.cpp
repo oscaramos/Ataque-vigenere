@@ -11,14 +11,6 @@
 
 using namespace std;
 
-/* Counts the frequency of all characters at n * offset. Where n is the number
- * of characters corresponding to the given offset.
- *
- * src - is the file descriptor of the source file.
- * frequencies - is the map holding the characters frequencies.
- * offset - is the offset of each charaters.
- * key_length - is the length of the key used to cipher src.
- */
 void countCharFrequencies(int src, map<char, unsigned> &frequencies,
                           unsigned offset, unsigned key_length)
 {
@@ -39,10 +31,6 @@ void countCharFrequencies(int src, map<char, unsigned> &frequencies,
     }
 }
 
-/* Finds the character that has the greatest frequency.
- *
- * m - is a map associating a character to its frequency.
- */
 static char findMostFrequentChar(std::map<char, unsigned> &m)
 {
     unsigned max_key{'a'};
@@ -56,18 +44,11 @@ static char findMostFrequentChar(std::map<char, unsigned> &m)
     return max_key;
 }
 
-/* Converts the given character to its position in the latin alphabet.
- *
- * c - is the character to convert.
- */
 static unsigned toNumber(char c)
 {
     return toupper(c) - 'A';
 }
 
-/* Copies src into a second file keeping alphabetic characters only and
- * converting them to lower case.
- */
 static int getLowerCaseCharFile(int src)
 {
     int tmp = open("tmp", O_RDWR | O_CREAT, 0666);
@@ -84,9 +65,6 @@ static int getLowerCaseCharFile(int src)
     return tmp;
 }
 
-/* Gets the key used to cipher the given key. The result is based on the 
- * assumption that e is the most frequent letter in english.
- */
 static unsigned getKey(char c)
 {
     for (unsigned i = 0; i < 4; ++i)
@@ -99,12 +77,6 @@ static unsigned getKey(char c)
     return toNumber(c);
 }
 
-/* Finds the key used to cipher a file with Vigenère.
- *
- * src - is the file descriptor of the file to analyse.
- * dest - is the file descriptor of the destination file.
- * returns a vector containing the keys.
- */
 std::vector<unsigned> findKey(int src, int dest)
 {
     int tmp = getLowerCaseCharFile(src);

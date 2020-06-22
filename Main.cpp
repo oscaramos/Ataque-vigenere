@@ -42,38 +42,41 @@ static void printKey(std::vector<unsigned> keys) {
 -o vigenere
  */
 
-/* argv contains (in the following order):
- * - argv[1]: 
- *  - "cipher" to cipher the content of the source file with a key.
- *  - "unipher" to uncipher the content of the source file with a key.
- *  - "attack" to uncipher the content of the source file without a key.
- * - argv[2] contains the path to the file where to store the result.
- * - argv[3] contains the key when needed.
+/*
+ * Examples
+ * Cipher
+ * vigenere.exe cipher original.txt ciphed.txt mi_llave
+ *
+ * Uncipher
+ * vigenere.exe uncipher ciphed.txt unciphered.txt mi_llave_privada
+ *
+ * Attack
+ * vigenere.exe attack ciphed.txt unciphered_by_attack.txt
  */
+
 int main(int argc, const char* argv[]) {
     if (argc < MIN_ARGC) {
-        std::cout << "usage: ./sec <cipher | uncipher | attack> <source> <destination> [key]\n";
+        std::cout << "usage: ./vigenere <cipher | uncipher | attack> <source> <destination> [key]\n";
         exit(3);
     }
 
     const char* action_type = argv[1];
     const char* source_path = argv[2];
     const char* destination_path = argv[3];
-    const char* key = argv[4];
-    const int key_len = strlen(key);
 
     int src = requireValidFileDescriptor(source_path, O_RDWR);
     int dest = open(destination_path, O_WRONLY|O_CREAT, 0666);
 
     if (strcmp("attack", action_type) == 0) {
         std::cout << "Attacking " << source_path << "...\n";
-        // Vigenere attack
         std::vector<unsigned> keys = findKey(src, dest);
         printKey(keys);
-        unsigned* k = &keys[0];
-        uncipher(src, dest, k, keys.size());
+        uncipher(src, dest, &keys[0], keys.size());
         std::cout << destination_path << " contains the unciphered text.\n";
     } else if (strcmp("cipher", action_type) == 0 || strcmp("uncipher", action_type) == 0) {
+        const char* key = argv[4];
+        const int key_len = strlen(key);
+
         unsigned keys[key_len];
         keyToValues(key, keys);
         if (strcmp("cipher", action_type) == 0) {
