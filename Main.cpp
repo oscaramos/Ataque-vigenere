@@ -21,7 +21,6 @@ static int requireValidFileDescriptor(const char* path, int flags) {
     return fd;
 }
 
-// Converts the given number to the letter of the latin alphabet corresponding.
 static char toLetter(unsigned index) {
     char letters[26] = {
             'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
@@ -29,21 +28,20 @@ static char toLetter(unsigned index) {
     return letters[index];
 }
 
-// Prints the given vector of keys as a string.
 static void printKey(std::vector<unsigned> keys) {
-    std::cout << "The key is \"";
+    std::cout << "La llave es \"";
     for (const auto& key : keys)
         std::cout << toLetter(key);
     std::cout << "\"" << std::endl;
 }
 
-/* Compilation line
+/* Linea de compilacion
  * g++ Main.cpp frequential_analysis/kasiski.cpp frequential_analysis/keylength.cpp cipher_tool/cipher.c
 -o vigenere
  */
 
 /*
- * Examples
+ * Ejemplos
  * Cipher
  * vigenere.exe cipher original.txt ciphed.txt MY_KEY
  *
@@ -56,7 +54,7 @@ static void printKey(std::vector<unsigned> keys) {
 
 int main(int argc, const char* argv[]) {
     if (argc < MIN_ARGC) {
-        std::cout << "usage: ./vigenere <cipher | uncipher | attack> <source> <destination> [key]\n";
+        std::cout << "uso: ./vigenere <cipher | uncipher | attack> <source> <destination> [key]\n";
         exit(3);
     }
 
@@ -68,11 +66,11 @@ int main(int argc, const char* argv[]) {
     int dest = open(destination_path, O_WRONLY|O_CREAT, 0666);
 
     if (strcmp("attack", action_type) == 0) {
-        std::cout << "Attacking " << source_path << "...\n";
+        std::cout << "Atacando " << source_path << "...\n";
         std::vector<unsigned> keys = findKey(src, dest);
         printKey(keys);
         uncipher(src, dest, &keys[0], keys.size());
-        std::cout << destination_path << " contains the unciphered text.\n";
+        std::cout << destination_path << " contiene el texto descifrado por ataque.\n";
     } else if (strcmp("cipher", action_type) == 0 || strcmp("uncipher", action_type) == 0) {
         const char* key = argv[4];
         const int key_len = strlen(key);
@@ -81,14 +79,13 @@ int main(int argc, const char* argv[]) {
         keyToValues(key, keys);
         if (strcmp("cipher", action_type) == 0) {
             cipher(src, dest, keys, key_len);
-            std::cout << "Ciphered text of " << source_path << " is in " << destination_path << ".\n";
+            std::cout << "Cifrando texto de " << source_path << " en " << destination_path << ".\n";
         } else if (strcmp("uncipher", action_type) == 0) {
             uncipher(src, dest, keys, key_len);
-            std::cout << "Unciphered text of " << source_path << " is in " << destination_path << ".\n";
+            std::cout << "Descifrando texto de " << source_path << " en " << destination_path << ".\n";
         }
     } else {
-        std::cout << "Unkown type of action! Here are your options: cipher";
-        std::cout << " uncipher or attack.";
+        std::cout << "Accion no conocida\n";
         exit(1);
     }
     close(src);
